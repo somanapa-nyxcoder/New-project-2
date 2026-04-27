@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DaySchedule, EventType } from "@/lib/types";
 
 type ViewMode = "today" | "week" | "month";
@@ -16,11 +16,21 @@ interface ScheduleAppProps {
   today: DaySchedule;
   week: DaySchedule[];
   month: DaySchedule[];
+  timezone: string;
 }
 
-export default function ScheduleApp({ today, week, month }: ScheduleAppProps) {
+export default function ScheduleApp({ today, week, month, timezone }: ScheduleAppProps) {
   const [view, setView] = useState<ViewMode>("today");
   const [selectedDate, setSelectedDate] = useState(today.dateKey);
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const selectedMonthDay = useMemo(
     () => month.find((day) => day.dateKey === selectedDate) ?? month[0],
@@ -33,6 +43,9 @@ export default function ScheduleApp({ today, week, month }: ScheduleAppProps) {
         <p className="eyebrow">Roommate Meal Planner</p>
         <h1>Kitchen Rhythm, Simplified</h1>
         <p className="subtitle">Cooking on Mon/Wed/Fri. Groceries on Sun/Tue/Thu evenings.</p>
+        <p className="live-clock">
+          {now ? formatLiveDateTime(now, timezone) : `Loading ${timezone} time...`}
+        </p>
       </header>
 
       <nav className="tabs" aria-label="Views">
@@ -52,6 +65,20 @@ export default function ScheduleApp({ today, week, month }: ScheduleAppProps) {
       {view === "month" ? <MonthView days={month} selectedDay={selectedMonthDay} onSelectDate={setSelectedDate} /> : null}
     </div>
   );
+}
+
+function formatLiveDateTime(date: Date, timezone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(date);
 }
 
 function TodayView({ day }: { day: DaySchedule }) {

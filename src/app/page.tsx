@@ -3,6 +3,8 @@ import { getTodayDateKeyInTimeZone } from "@/lib/date-utils";
 import { getAppData } from "@/lib/data";
 import { buildDaySchedule, buildMonthGridSchedules, buildWeekSchedules } from "@/lib/schedule";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const appData = await getAppData();
   const todayDateKey = getTodayDateKeyInTimeZone(appData.config.timezone);
@@ -13,7 +15,7 @@ export default async function Home() {
 
   return (
     <main className="app-wrap">
-      <ScheduleApp today={today} week={week} month={month} />
+      <ScheduleApp today={today} week={week} month={month} timezone={appData.config.timezone} />
     </main>
   );
 }
